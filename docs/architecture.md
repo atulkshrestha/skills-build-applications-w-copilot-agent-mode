@@ -30,20 +30,30 @@ OctoFit Tracker is a three-tier application for a school fitness program. The st
 
 Record your plan here before editing code.
 
-- Presentation tier decision:
-- Logic tier decision:
-- Data tier decision:
-- Activity tracking approach:
-- Team management approach:
-- Leaderboard approach:
-- Workout suggestions approach:
+- Presentation tier decision: React components (Activities, Teams, Leaderboard, Workouts) use `src/api/client.ts` to fetch data from `/api` endpoints. Each component implements four states: loading (spinner), empty (meaningful message), success (rendered data), and error (accessible alert). React Router handles navigation between routes.
+
+- Logic tier decision: Express TypeScript routes and service functions implement business logic. Routes validate input and return deliberate 4xx responses (never 500s from cast errors) for invalid requests. Services handle data aggregation and filtering. All routes live under `/api/`.
+
+- Data tier decision: Mongoose schemas define User, Team, Activity, and Workout models with validation rules. Required fields are enforced at the schema level. The seed script uses upserts to maintain stable demo data without clearing existing records.
+
+- Activity tracking approach: POST `/api/activities` accepts `userId`, `teamId`, `type`, and `minutes`; validates that both IDs reference existing documents; calculates `points` from `minutes`; and stores with `occurredAt` timestamp. GET `/api/activities` returns the full list. Invalid IDs return 400, not 500.
+
+- Team management approach: POST `/api/teams` requires `name` and `mascot`; rejects payloads without a name with 400. Teams store a `members` array of User IDs. GET `/api/teams` lists all teams with their members populated.
+
+- Leaderboard approach: GET `/api/leaderboard` aggregates activities by team, sums points per team, and ranks teams by total points (highest first). Each entry includes `teamName`, `totalPoints`, and 1-based `rank`.
+
+- Workout suggestions approach: GET `/api/workouts/suggestions/:userEmail` finds the user, analyzes their recent activity types, and returns suggestions matching their fitness goal or most frequent activity. Each suggestion includes `title`, `focus`, `difficulty`, `minutes`, and a `reason` field explaining why the suggestion matches.
 
 ## Test plan
 
 Record the commands you run and what each failure means.
 
-- Data-tier command: `npm run test:data --prefix octofit-tracker/backend`
-- API command: `npm run test:api --prefix octofit-tracker/backend`
-- Frontend command: `npm test --prefix octofit-tracker/frontend`
-- Backend build command: `npm run build --prefix octofit-tracker/backend`
-- Frontend build command: `npm run build --prefix octofit-tracker/frontend`
+- **Data-tier command**: `npm run test:data --prefix octofit-tracker/backend` — Validates Mongoose schema constraints. Expects User to enforce `name`, `email`, and `fitnessGoal`; Team to enforce `name`, `mascot`, and `members` array; Activity to enforce `type`, `user`, `team`, `minutes`, and `points`; Workout to enforce `focus`, `minutes`, and `difficulty`. Failures indicate missing or incomplete validation rules in model schemas.
+
+- **API command**: `npm run test:api --prefix octofit-tracker/backend` — Validates API contracts and HTTP behavior. Tests that POST endpoints return 400 (not 501) for invalid input, that GET endpoints return correct response shapes and status codes, that validation rejects malformed IDs with 4xx (never 500), and that leaderboard and suggestion endpoints compute and return expected data. Failures indicate missing routes, unhandled validation, or incorrect response formats.
+
+- **Frontend command**: `npm test --prefix octofit-tracker/frontend` — Validates component rendering and accessibility. Tests that each route (Activities, Teams, Leaderboard, Workouts) shows a loading state while fetching, an empty state when no data is available, the correct data when the API succeeds, and an accessible error alert when the API fails. Failures indicate missing state management, absent components, or inaccessible UI.
+
+- **Backend build command**: `npm run build --prefix octofit-tracker/backend` — Compiles TypeScript to JavaScript. Catches type errors in routes, services, and models. Must succeed before the API can run.
+
+- **Frontend build command**: `npm run build --prefix octofit-tracker/frontend` — Builds optimized Vite bundle. Catches TypeScript errors and missing imports in components. Must succeed before deployment.
