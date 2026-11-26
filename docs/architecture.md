@@ -30,19 +30,19 @@ OctoFit Tracker is a three-tier application for a school fitness program. The st
 
 Record your plan here before editing code.
 
-- **Presentation tier decision**: React components (Activities, Teams, Leaderboard, Workouts) use `src/api/client.ts` to fetch data from `/api` endpoints. Each component implements four states: loading (spinner), empty (meaningful message), success (rendered data), and error (accessible alert). React Router handles navigation between routes.
+- Presentation tier decision: React components (Activities, Teams, Leaderboard, Workouts) use `src/api/client.ts` to fetch data from `/api` endpoints. Each component implements four states: loading (spinner), empty (meaningful message), success (rendered data), and error (accessible alert). React Router handles navigation between routes.
 
-- **Logic tier decision**: Express TypeScript routes and service functions implement business logic. Routes validate input and return deliberate 4xx responses (never 500s from cast errors) for invalid requests. Services handle data aggregation and filtering. All routes live under `/api/`.
+- Logic tier decision: Express TypeScript routes and service functions implement business logic. Routes validate input and return deliberate 4xx responses (never 500s from cast errors) for invalid requests. Services handle data aggregation and filtering. All routes live under `/api/`.
 
-- **Data tier decision**: Mongoose schemas define User, Team, Activity, and Workout models with validation rules. Required fields are enforced at the schema level. The seed script uses upserts to maintain stable demo data without clearing existing records.
+- Data tier decision: Mongoose schemas define User, Team, Activity, and Workout models with validation rules. Required fields are enforced at the schema level. The seed script uses upserts to maintain stable demo data without clearing existing records.
 
-- **Activity tracking approach**: POST `/api/activities` accepts `userId`, `teamId`, `type`, and `minutes`; validates that both IDs reference existing documents; calculates `points` from `minutes`; and stores with `occurredAt` timestamp. GET `/api/activities` returns the full list. Invalid IDs return 400, not 500.
+- Activity tracking approach: POST `/api/activities` accepts `userId`, `teamId`, `type`, and `minutes`; validates that both IDs reference existing documents; calculates `points` from `minutes`; and stores with `occurredAt` timestamp. GET `/api/activities` returns the full list. Invalid IDs return 400, not 500.
 
-- **Team management approach**: POST `/api/teams` requires `name` and `mascot`; rejects payloads without a name with 400. Teams store a `members` array of User IDs. GET `/api/teams` lists all teams with their members populated.
+- Team management approach: POST `/api/teams` requires `name` and `mascot`; rejects payloads without a name with 400. Teams store a `members` array of User IDs. GET `/api/teams` lists all teams with their members populated.
 
-- **Leaderboard approach**: GET `/api/leaderboard` aggregates activities by team, sums points per team, and ranks teams by total points (highest first). Each entry includes `teamName`, `totalPoints`, and 1-based `rank`.
+- Leaderboard approach: GET `/api/leaderboard` aggregates activities by team, sums points per team, and ranks teams by total points (highest first). Each entry includes `teamName`, `totalPoints`, and 1-based `rank`.
 
-- **Workout suggestions approach**: GET `/api/workouts/suggestions/:userEmail` finds the user, analyzes their recent activity types, and returns suggestions matching their fitness goal or most frequent activity. Each suggestion includes `title`, `focus`, `difficulty`, `minutes`, and a `reason` field explaining why the suggestion matches.
+- Workout suggestions approach: GET `/api/workouts/suggestions/:userEmail` finds the user, analyzes their recent activity types, and returns suggestions matching their fitness goal or most frequent activity. Each suggestion includes `title`, `focus`, `difficulty`, `minutes`, and a `reason` field explaining why the suggestion matches.
 
 ## Test plan
 
